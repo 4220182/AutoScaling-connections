@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: shell-operator
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: 10.2.2.121
+  containers:
+  - name: shell-operator
+    image: koza/autoscaling-conn:latest
+    imagePullPolicy: IfNotPresent
+  serviceAccountName: monitor-conn
