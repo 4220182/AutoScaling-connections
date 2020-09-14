@@ -37,15 +37,18 @@ else
     resourceReplicas=`jq -r ".[0].object.spec.replicas" $BINDING_CONTEXT_PATH`
 
     if [[ $resourceName == "nginx" ]] && [[ $resourceReplicas != "null" ]] ; then
+
       AMBASSADOR_NUMBERS=`kubectl get deployment ambassador -o json |jq -r ".spec.replicas"`
       changeConns $AMBASSADOR_NUMBERS $resourceReplicas $APP_BASE_CONNECTIONS
       echo "$resourceName replicas is: $resourceReplicas; ambassador replicas is: $AMBASSADOR_NUMBERS"
       echo "ambassador MAX_CONNECTIONS is: $MAX_CONNECTIONS ; MAX_PENDING_REQUESTS is: $MAX_PENDING_REQUESTS"
-    fi
-    if [[ $resourceName == "ambassador" ]] && [[ $resourceReplicas != "null" ]] ; then
+
+    elif [[ $resourceName == "ambassador" ]] && [[ $resourceReplicas != "null" ]] ; then
+
       NGINX_NUMBERS=`kubectl get deployment nginx -o json |jq -r ".spec.replicas"`
       changeConns $resourceReplicas $NGINX_NUMBERS $APP_BASE_CONNECTIONS
       echo "$resourceName replicas is: $resourceReplicas; nginx replicas is: $resourceReplicas"
       echo "ambassador MAX_CONNECTIONS is: $MAX_CONNECTIONS ; MAX_PENDING_REQUESTS is: $MAX_PENDING_REQUESTS"
+
     fi
 fi
