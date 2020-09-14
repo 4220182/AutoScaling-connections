@@ -10,5 +10,10 @@ spec:
   - name: shell-operator
     image: koza/autoscaling-conn:latest
     imagePullPolicy: IfNotPresent
+    env:
+      - name: APP_BASE_CONNECTIONS
+        value: "50"
+      - name: AMBASSADOR_NUMBERS
+        value: "3"
     ports:
       - containerPort: 9115

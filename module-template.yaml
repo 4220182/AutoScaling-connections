@@ -1,0 +1,9 @@
+apiVersion: getambassador.io/v2
+kind:  Module
+metadata:
+  name:  ambassador
+spec:
+  config:
+    circuit_breakers:
+      - max_connections: ${MAX_CONNECTIONS}
+        max_pending_requests: ${MAX_PENDING_REQUESTS}

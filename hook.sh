@@ -7,7 +7,7 @@ if [[ $1 == "--config" ]] ; then
 configVersion: v1
 kubernetes:
 - name: OnModifiedTest
-  apiVersion: extensions/v1beta1
+  apiVersion: apps/v1
   kind: Deployment
   nameSelector:
     matchNames:
@@ -30,7 +30,10 @@ else
     resourceReplicas=`jq -r ".[0].object.spec.replicas" $BINDING_CONTEXT_PATH`
 
     if [[ $resourceReplicas != "null" ]] ; then
-      echo "deployment $resourceName replicas is: $resourceReplicas"
-
+      echo "$resourceName replicas is: $resourceReplicas; ambassador replicas is: $AMBASSADOR_NUMBERS"
+      export MAX_CONNECTIONS=`expr $resourceReplicas \* $APP_BASE_CONNECTIONS / $AMBASSADOR_NUMBERS / 2`
+      export MAX_PENDING_REQUESTS=`expr $resourceReplicas \* $APP_BASE_CONNECTIONS / $AMBASSADOR_NUMBERS / 2`
+      cat /templates/module-template.yaml |envsubst |kubectl apply -f -
+      echo "ambassador MAX_CONNECTIONS is: $MAX_CONNECTIONS ; MAX_PENDING_REQUESTS is: $MAX_PENDING_REQUESTS"
     fi
 fi
