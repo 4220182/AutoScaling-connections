@@ -42,6 +42,7 @@ else
       changeConns $AMBASSADOR_NUMBERS $resourceReplicas $APP_BASE_CONNECTIONS
       echo "$resourceName replicas is: $resourceReplicas; ambassador replicas is: $AMBASSADOR_NUMBERS"
       echo "ambassador MAX_CONNECTIONS is: $MAX_CONNECTIONS ; MAX_PENDING_REQUESTS is: $MAX_PENDING_REQUESTS"
+      echo "{\"name\":\"TEST_MAX_CONNECTIONS\",\"set\":$MAX_CONNECTIONS,\"labels\":{\"source\":\"source1\"}}" >> $METRICS_PATH
 
     elif [[ $resourceName == "ambassador" ]] && [[ $resourceReplicas != "null" ]] ; then
 
