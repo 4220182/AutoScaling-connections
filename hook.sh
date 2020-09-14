@@ -2,6 +2,15 @@
 
 cat $BINDING_CONTEXT_PATH >/tmp/tmp.log
 
+changeConns(){
+      AMBASSADOR_NUMBERS=$1
+      APP_NUMBERS=$2
+      APP_BASE_CONNECTIONS=$3
+      export MAX_CONNECTIONS=`expr $APP_NUMBERS \* $APP_BASE_CONNECTIONS / $AMBASSADOR_NUMBERS / 2`
+      export MAX_PENDING_REQUESTS=`expr $APP_NUMBERS \* $APP_BASE_CONNECTIONS / $AMBASSADOR_NUMBERS / 2`
+      cat /templates/module-template.yaml |envsubst |kubectl apply -f -
+}
+
 if [[ $1 == "--config" ]] ; then
   cat <<EOF
 configVersion: v1
@@ -12,9 +21,7 @@ kubernetes:
   nameSelector:
     matchNames:
     - nginx
-  labelSelector:
-    matchLabels:
-      app: nginx
+    - ambassador
   namespace:
     nameSelector:
       matchNames:
@@ -29,11 +36,16 @@ else
     resourceName=`jq -r ".[0].object.metadata.name" $BINDING_CONTEXT_PATH`
     resourceReplicas=`jq -r ".[0].object.spec.replicas" $BINDING_CONTEXT_PATH`
 
-    if [[ $resourceReplicas != "null" ]] ; then
+    if [[ $resourceName == "nginx" ]] && [[ $resourceReplicas != "null" ]] ; then
+      AMBASSADOR_NUMBERS=`kubectl get deployment ambassador -o json |jq -r ".spec.replicas"`
+      changeConns $AMBASSADOR_NUMBERS $resourceReplicas $APP_BASE_CONNECTIONS
       echo "$resourceName replicas is: $resourceReplicas; ambassador replicas is: $AMBASSADOR_NUMBERS"
-      export MAX_CONNECTIONS=`expr $resourceReplicas \* $APP_BASE_CONNECTIONS / $AMBASSADOR_NUMBERS / 2`
-      export MAX_PENDING_REQUESTS=`expr $resourceReplicas \* $APP_BASE_CONNECTIONS / $AMBASSADOR_NUMBERS / 2`
-      cat /templates/module-template.yaml |envsubst |kubectl apply -f -
+      echo "ambassador MAX_CONNECTIONS is: $MAX_CONNECTIONS ; MAX_PENDING_REQUESTS is: $MAX_PENDING_REQUESTS"
+    fi
+    if [[ $resourceName == "ambassador" ]] && [[ $resourceReplicas != "null" ]] ; then
+      NGINX_NUMBERS=`kubectl get deployment nginx -o json |jq -r ".spec.replicas"`
+      changeConns $resourceReplicas $NGINX_NUMBERS $APP_BASE_CONNECTIONS
+      echo "$resourceName replicas is: $resourceReplicas; nginx replicas is: $resourceReplicas"
       echo "ambassador MAX_CONNECTIONS is: $MAX_CONNECTIONS ; MAX_PENDING_REQUESTS is: $MAX_PENDING_REQUESTS"
     fi
 fi
