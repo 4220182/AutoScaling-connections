@@ -8,9 +8,8 @@ changeConns(){
       APP_BASE_CONNECTIONS=$3
       export MAX_CONNECTIONS=`expr $APP_NUMBERS \* $APP_BASE_CONNECTIONS / $AMBASSADOR_NUMBERS / 2`
       export MAX_PENDING_REQUESTS=`expr $APP_NUMBERS \* $APP_BASE_CONNECTIONS / $AMBASSADOR_NUMBERS / 2`
-      cat /templates/module-template.yaml |envsubst |kubectl apply -f -
-}
-
+      kubectl patch module ambassador --type=merge  --patch \
+              "{\"spec\":{\"config\":{\"circuit_breakers\":[{\"max_connections\":$MAX_CONNECTIONS,\"max_pending_requests\":$MAX_PENDING_REQUESTS}]}}}"
 if [[ $1 == "--config" ]] ; then
   cat <<EOF
 configVersion: v1
